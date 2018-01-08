@@ -10,7 +10,14 @@ someFunc = do
   handle <- openFile "test/tutorial_example.mm" ReadMode 
   contents <- hGetContents handle
   putStrLn . stripComments $ contents
-  putStrLn . intercalate ", " $ collectMetaTokens contents
+  let tokens = collectMetaTokens contents
+  putStrLn . intercalate ", " $ tokens
+  putStrLn . show $ length tokens
+  let sortedTokens = sort tokens
+  let tokenGroups = group sortedTokens
+  let tokenCount = map length tokenGroups
+  let tokenLabels = map head tokenGroups
+  putStrLn . show $ zip tokenLabels tokenCount
   hClose handle
 
 stripComments :: String -> String
