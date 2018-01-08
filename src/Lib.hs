@@ -23,6 +23,8 @@ someFunc = do
   let constantTokens = getConstantTokens tokens
   putStrLn $ show constantTokens
   putStrLn . show $ length constantTokens
+  let variables = getVariables tokens
+  putStrLn $ show variables
   hClose handle
 
 stripComments :: String -> String
@@ -52,4 +54,14 @@ getConstantTokens' :: [String] -> [String]
 getConstantTokens' [] = error "No matching $. found!"
 getConstantTokens' (('$':'.':""):xs) = getConstantTokens xs
 getConstantTokens' (x:xs) = x : getConstantTokens' xs
+
+getVariables :: [String] -> [String]
+getVariables [] = []
+getVariables (('$':'v':""):xs) = getVariables' xs
+getVariables (_:xs) = getVariables xs
+
+getVariables' :: [String] -> [String]
+getVariables' [] = error "No matching $. found!"
+getVariables' (('$':'.':""):xs) = getVariables xs
+getVariables' (x:xs) = x : getVariables' xs
 
