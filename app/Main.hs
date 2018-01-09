@@ -7,6 +7,6 @@ main :: IO ()
 main = do
   handle <- openFile "tests/tutorial_example.mm" ReadMode 
   contents <- hGetContents handle
-  putStrLn $ compile contents
+  putStrLn . show $ compile contents
   hClose handle
 

@@ -24,6 +24,8 @@ dependencies:
 
 library:
   source-dirs: src
+  dependencies:
+  - megaparsec >= 6.3 && < 7
 
 executables:
   from-metamath-exe:
