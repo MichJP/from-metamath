@@ -1,6 +1,5 @@
 module Lib
-    ( compile
-    ) where
+    where
 
 import Control.Applicative hiding (Const)
 import Control.Monad (void)
@@ -51,7 +50,7 @@ keywords :: [String]
 keywords = map show [ CONSTANTS, VARIABLES, FLOATING_HYPOTHESIS, ESSENTIAL_HYPOTHESIS, DISJOINT_VARIABLE_RESTRICTION, AXIOMATIC_ASSERTION, PROVABLE_ASSERTION, STATEMENT_TERMINATOR, PROOF, BEGIN, END ]
 
 compile :: String -> Either String Bool
-compile input = case parse statementList "(stdin)" input of
+compile input = case parse statementList "(stdin)" (preprocess input) of
                   Right statements -> Right (isValid statements)
                   Left err -> Left $ parseErrorPretty err
 
@@ -78,7 +77,7 @@ lexeme :: Parser a -> Parser a
 lexeme = L.lexeme sc
 
 syntaxElement :: (String -> a) -> Parser a
-syntaxElement f = (lexeme . try) (some asciiChar >>= check)
+syntaxElement f = (lexeme . try) (some (alphaNumChar <|> punctuationChar) >>= check)
   where check x = if x `elem` keywords
                     then fail $ "keyword " ++ show x ++ " cannot be a symbol"
                     else return $ f x
@@ -127,8 +126,8 @@ provableAssertion = do
   return $ Theorem assertionLabel theorem proof
 
 statement =   constants
---          <|> axiomaticAssertion
---          <|> provableAssertion
+          <|> axiomaticAssertion
+          <|> provableAssertion
 
-statementList = many statement
+statementList = sc *> many statement <* eof
 
