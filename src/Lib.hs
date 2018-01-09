@@ -1,31 +1,29 @@
 module Lib
-    ( someFunc
+    ( compile
     ) where
 
-import System.IO
 import Data.List
 
-someFunc :: IO ()
-someFunc = do
-  handle <- openFile "test/tutorial_example.mm" ReadMode 
-  contents <- hGetContents handle
-  let src = stripComments contents
-  putStrLn src
-  let tokens = collectMetaTokens contents
-  putStrLn . intercalate ", " $ tokens
-  putStrLn . show $ length tokens
-  let sortedTokens = sort tokens
-  let tokenGroups = group sortedTokens
-  let tokenCount = map length tokenGroups
-  let tokenLabels = map head tokenGroups
-  putStrLn . show $ zip tokenLabels tokenCount
-  let tokens = collectTokens src
-  let constantTokens = getConstantTokens tokens
-  putStrLn $ show constantTokens
-  putStrLn . show $ length constantTokens
-  let variables = getVariables tokens
-  putStrLn $ show variables
-  hClose handle
+compile :: String -> String
+compile contents =
+    unlines [
+        src
+      , intercalate ", " tokens
+      , show $ length tokens
+      , show $ zip tokenLabels tokenCount
+      , show constantTokens
+      , show $ length constantTokens
+      , show variables
+    ]
+  where src = stripComments contents
+        tokens = collectMetaTokens contents
+        sortedTokens = sort tokens
+        tokenGroups = group sortedTokens
+        tokenCount = map length tokenGroups
+        tokenLabels = map head tokenGroups
+        regularTokens = collectTokens src
+        constantTokens = getConstantTokens regularTokens
+        variables = getVariables regularTokens
 
 stripComments :: String -> String
 stripComments "" = ""

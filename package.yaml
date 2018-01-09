@@ -38,11 +38,12 @@ executables:
 
 tests:
   from-metamath-test:
-    main:                Spec.hs
-    source-dirs:         test
+    main:                Test.hs
+    source-dirs:         tests
     ghc-options:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
     - from-metamath
+    - HUnit >= 1.2 && < 2
