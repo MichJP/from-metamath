@@ -16,7 +16,9 @@ test2 = TestLabel "comment2" $ TestCase (case compile "$( nested $( comment $) $
                              Right _ -> assertFailure "Nested comments parsed successfully!")
 test3 = mkTest "cap1" "$c f x $. t $a f x $. $p f x $= t $." (Right True)
 test4 = mkTest "c1" "$c f x $." (Right True)
-test5 = mkTest "c2" "$c $. $." (Right False)
+test5 = TestLabel "c2" $ TestCase (case compile "$c $. $." of
+                                     Left _ -> return ()
+                                     Right _ -> assertFailure "Unpaired $. parsed successfully!")
 
 tests =
   [

@@ -15,11 +15,13 @@ type Label = String
 
 data Symbol = Const String
             | Var String
+            deriving (Eq, Show)
 
 data Statement = Constants [Symbol]
                | Variables [Symbol]
                | Axiom Label [Symbol]
                | Theorem Label [Symbol] [Label]
+               deriving (Show)
 
 data Keyword = CONSTANTS -- $c
              | VARIABLES -- $v
@@ -54,9 +56,21 @@ compile input = case parse statementList "(stdin)" input of
                   Right statements -> Right (isValid statements)
                   Left err -> Left $ parseErrorPretty err
 
+-- A list of statement is valid given the following:
+-- 1. Symbols between $a and $. and between $p and $. have
+--    occurred previously between $c and $..
+-- 2. Labels between $= and $. have occurred previously
+--    before $a or $p.
+-- TODO: Assert uniqueness of each label.
 isValid :: [Statement] -> Bool
-isValid [] = True
-isValid _ = False
+isValid = isValid' [] []
+
+isValid' :: [Symbol] -> [Label] -> [Statement] -> Bool
+isValid' [] _ _ = True
+isValid' symbols labels ((Constants cs):xs) = isValid' (cs ++ symbols) labels xs 
+isValid' symbols labels ((Variables vs):xs) = error "Not implemented yet."
+isValid' symbols labels ((Axiom lb sbs):xs) = all (`elem` symbols) sbs && isValid' symbols (lb : labels) xs
+isValid' symbols labels ((Theorem lb sbs lbs):xs) = all (`elem` symbols) sbs && all (`elem` labels) lbs && isValid' symbols (lb : labels) xs
 
 sc :: Parser ()
 sc = L.space (void spaceChar) lineCmnt blockCmnt
@@ -103,13 +117,13 @@ axiomaticAssertion = do
   assertionLabel <- statementLabel
   symbols <- between (symbol $ show AXIOMATIC_ASSERTION)
                      statementTerminator
-                     (syntaxElementList Const)
+                     (syntaxElementList Const) -- TODO: Consider variables
   return $ Axiom assertionLabel symbols
 
 provableAssertion = do
   assertionLabel <- statementLabel
   symbol $ show PROVABLE_ASSERTION
-  theorem <- syntaxElementList Const
+  theorem <- syntaxElementList Const -- TODO: Consider variables
   symbol $ show PROOF
   proof <- statementLabelList
   statementTerminator
