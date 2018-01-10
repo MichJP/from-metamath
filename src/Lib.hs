@@ -1,5 +1,7 @@
 module Lib where
 
+import Data.Map.Strict (Map)
+import qualified Data.Map.Strict as Map
 import Text.Megaparsec
 
 import Parser
@@ -17,11 +19,27 @@ compile input = case parse statementList "(stdin)" input of
 --    before $a or $p.
 -- TODO: Assert uniqueness of each label.
 isValid :: [Statement] -> Bool
-isValid = isValid' [] []
+isValid = isValid' [] Map.empty
 
-isValid' :: [Symbol] -> [Label] -> [Statement] -> Bool
-isValid' [] _ _ = True
-isValid' symbols labels ((Constants cs):xs) = isValid' (cs ++ symbols) labels xs 
-isValid' symbols labels ((Variables vs):xs) = error "Not implemented yet."
-isValid' symbols labels ((Axiom lb sbs):xs) = all (`elem` symbols) sbs && isValid' symbols (lb : labels) xs
-isValid' symbols labels ((Theorem lb sbs lbs):xs) = all (`elem` symbols) sbs && all (`elem` labels) lbs && isValid' symbols (lb : labels) xs
+isValid' :: [Symbol] -> Map Label [Symbol] -> [Statement] -> Bool
+isValid' _ _ [] = True
+isValid' symbols hypotheses ((Constants cs):xs) =
+    isValid' (cs ++ symbols) hypotheses xs
+isValid' symbols hypotheses ((Variables vs):xs) =
+    error "Not implemented yet."
+isValid' symbols hypotheses ((Axiom lb sbs):xs) = and
+    [ all (`elem` symbols) sbs
+    , isValid' symbols (Map.insert lb sbs hypotheses) xs
+    ]
+isValid' symbols hypotheses ((Theorem lb sbs proof):xs) = and
+    [ all (`elem` symbols) sbs
+    , all (`Map.member` hypotheses) proof
+    , proof `reduceWith` hypotheses == sbs
+    , isValid' symbols (Map.insert lb sbs hypotheses) xs
+    ]
+
+reduceWith :: [Label] -> Map Label [Symbol] -> [Symbol]
+reduceWith [] _ = []
+reduceWith (lb:lbs) hypotheses = Map.findWithDefault [] lb hypotheses ++ reduceWith lbs hypotheses
+
+
