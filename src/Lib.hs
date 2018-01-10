@@ -48,8 +48,19 @@ instance Show Keyword where
   show BEGIN = "${"
   show END = "$}"
 
-keywords :: [String]
-keywords = map show [ CONSTANTS, VARIABLES, FLOATING_HYPOTHESIS, ESSENTIAL_HYPOTHESIS, DISJOINT_VARIABLE_RESTRICTION, AXIOMATIC_ASSERTION, PROVABLE_ASSERTION, STATEMENT_TERMINATOR, PROOF, BEGIN, END ]
+allKeywords :: [String]
+allKeywords = map show [ CONSTANTS
+                       , VARIABLES
+                       , FLOATING_HYPOTHESIS
+                       , ESSENTIAL_HYPOTHESIS
+                       , DISJOINT_VARIABLE_RESTRICTION
+                       , AXIOMATIC_ASSERTION
+                       , PROVABLE_ASSERTION
+                       , STATEMENT_TERMINATOR
+                       , PROOF
+                       , BEGIN
+                       , END
+                       ]
 
 compile :: String -> Either String Bool
 compile input = case parse statementList "(stdin)" input of
@@ -82,23 +93,23 @@ lexeme = L.lexeme sc
 
 syntaxElement :: (String -> a) -> Parser a
 syntaxElement f = (lexeme . try) (some (alphaNumChar <|> punctuationChar) >>= check)
-  where check x = if x `elem` keywords
+  where check x = if x `elem` allKeywords
                     then fail $ "keyword " ++ show x ++ " cannot be a symbol"
                     else return $ f x
 
 syntaxElementList f = many $ syntaxElement f
 
-symbol :: String -> Parser String
-symbol = L.symbol sc
+keyword :: String -> Parser ()
+keyword w = lexeme (string w *> notFollowedBy (alphaNumChar <|> punctuationChar))
 
-statementTerminator = symbol $ show STATEMENT_TERMINATOR
+statementTerminator = keyword $ show STATEMENT_TERMINATOR
 
 declaration kwd@CONSTANTS =
-    between (symbol $ show kwd)
+    between (keyword $ show kwd)
             statementTerminator
             (syntaxElementList Const)
 declaration kwd@VARIABLES =
-    between (symbol $ show kwd)
+    between (keyword $ show kwd)
             statementTerminator
             (syntaxElementList Var)
 declaration kwd = fail $ "keyword " ++ show kwd ++ " cannot be declared"
@@ -115,16 +126,16 @@ statementLabelList = many statementLabel
 
 axiomaticAssertion = do
   assertionLabel <- statementLabel
-  symbols <- between (symbol $ show AXIOMATIC_ASSERTION)
+  symbols <- between (keyword $ show AXIOMATIC_ASSERTION)
                      statementTerminator
                      (syntaxElementList Const) -- TODO: Consider variables
   return $ Axiom assertionLabel symbols
 
 provableAssertion = do
   assertionLabel <- statementLabel
-  symbol $ show PROVABLE_ASSERTION
+  keyword $ show PROVABLE_ASSERTION
   theorem <- syntaxElementList Const -- TODO: Consider variables
-  symbol $ show PROOF
+  keyword $ show PROOF
   proof <- statementLabelList
   statementTerminator
   return $ Theorem assertionLabel theorem proof
