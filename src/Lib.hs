@@ -130,7 +130,7 @@ provableAssertion = do
   return $ Theorem assertionLabel theorem proof
 
 statement =   constants
-          <|> axiomaticAssertion
+          <|> try axiomaticAssertion
           <|> provableAssertion
 
 statementList = sc *> many statement <* eof
