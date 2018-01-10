@@ -50,19 +50,9 @@ keywords :: [String]
 keywords = map show [ CONSTANTS, VARIABLES, FLOATING_HYPOTHESIS, ESSENTIAL_HYPOTHESIS, DISJOINT_VARIABLE_RESTRICTION, AXIOMATIC_ASSERTION, PROVABLE_ASSERTION, STATEMENT_TERMINATOR, PROOF, BEGIN, END ]
 
 compile :: String -> Either String Bool
-compile input = case parse statementList "(stdin)" (preprocess input) of
+compile input = case parse statementList "(stdin)" input of
                   Right statements -> Right (isValid statements)
                   Left err -> Left $ parseErrorPretty err
-
-preprocess :: String -> String
-preprocess "" = ""
-preprocess ('$':'(':xs) = removeComment xs
-preprocess (x:xs) = x : removeComment xs
-
-removeComment :: String -> String
-removeComment "" = error "No matching $) found!"
-removeComment ('$':')':xs) = preprocess xs
-removeComment (_:xs) = removeComment xs
 
 isValid :: [Statement] -> Bool
 isValid [] = True
@@ -71,7 +61,7 @@ isValid _ = False
 sc :: Parser ()
 sc = L.space (void spaceChar) lineCmnt blockCmnt
   where lineCmnt = empty
-        blockCmnt = empty
+        blockCmnt = L.skipBlockComment "$(" "$)"
 
 lexeme :: Parser a -> Parser a
 lexeme = L.lexeme sc
