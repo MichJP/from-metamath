@@ -21,9 +21,11 @@ test8 = mkTest "keyword-8-st" (show STATEMENT_TERMINATOR) "$."
 test9 = mkTest "keyword-9-proof" (show PROOF) "$="
 test10 = mkTest "keyword-10-begin" (show BEGIN) "${"
 test11 = mkTest "keyword-11-end" (show END) "$}"
+test12 = mkTest "keyword-list" allKeywords ["$c", "$v", "$f", "$e", "$d", "$a", "$p", "$.", "$=", "${", "$}"]
 
 parserTests = [
-    test11
+    test12
+  , test11
   , test10
   , test9
   , test8
