@@ -1,11 +1,13 @@
-$c -> ( ) wff |- $.
+$c -> ( ) not wff |- $.
 $v A B C $.
 wff_A $f wff A $.
 wff_B $f wff B $.
 wff_C $f wff C $.
+wff_not $a wff ( not A ) $.
 wff_imp $a wff ( A -> B ) $.
 axiom_1 $a |- ( A -> ( B -> A ) ) $.
 axiom_2 $a |- ( ( A -> ( B -> C ) ) -> ( ( A -> B ) -> ( A -> C ) ) ) $.
+axiom_3 $a |- ( ( ( not B ) -> ( not A ) ) -> ( ( ( not B ) -> A ) -> B ) ) $.
 
 ${
 min $e |- A $.
@@ -87,7 +89,7 @@ step_4 $p |- ( A -> ( A -> A ) ) $=
   axiom_1
 $.
 
-step_5 $p |- ( A -> A ) $=
+th1 $p |- ( A -> A ) $=
   wff_A
   wff_A
   wff_A
@@ -100,5 +102,26 @@ step_5 $p |- ( A -> A ) $=
   step_4
   wff_A
   step_3
+  modus_ponens
+$.
+
+th2 $p |- ( ( ( not B ) -> B ) -> B ) $=
+  wff_B
+  wff_not
+  wff_B
+  wff_not
+  wff_imp
+  wff_B
+  wff_not
+  wff_B
+  wff_imp
+  wff_B
+  wff_imp
+  wff_B
+  wff_not
+  th1
+  wff_B
+  wff_B
+  axiom_3
   modus_ponens
 $.

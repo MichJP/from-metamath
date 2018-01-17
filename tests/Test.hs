@@ -3,6 +3,7 @@ import System.IO
 import Test.HUnit
 
 import Lib
+import ParserTest
 
 main :: IO ()
 main = void (runTestTT (TestList tests))
@@ -43,7 +44,7 @@ test9 = mkTest "incorrect-proof-1"
                "$c x y $. t $a y x $. u $p x y $= t $."
                (Right False)
 
-tests =
+tests = parserTests ++
   [
     test9
   , test8
