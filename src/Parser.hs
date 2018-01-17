@@ -26,7 +26,8 @@ syntaxElement f = (lexeme . try) (some (alphaNumChar <|> punctuationChar) >>= ch
                     then fail $ "keyword " ++ show x ++ " cannot be a symbol"
                     else return $ f x
 
-syntaxElementList f = many $ syntaxElement f
+syntaxElementList :: (String -> a) -> Parser [a]
+syntaxElementList = many . syntaxElement
 
 keyword :: String -> Parser ()
 keyword w = lexeme (string w *> notFollowedBy (alphaNumChar <|> punctuationChar))
