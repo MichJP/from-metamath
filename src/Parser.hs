@@ -1,6 +1,6 @@
 module Parser where
 
-import Control.Applicative hiding (Const)
+import Control.Applicative
 import Control.Monad (void)
 import Data.List
 import Data.Void
@@ -20,14 +20,14 @@ sc = L.space (void spaceChar) lineCmnt blockCmnt
 lexeme :: Parser a -> Parser a
 lexeme = L.lexeme sc
 
-syntaxElement :: (String -> a) -> Parser a
-syntaxElement f = (lexeme . try) (some (alphaNumChar <|> punctuationChar) >>= check)
+syntaxElement :: Parser Symbol
+syntaxElement = (lexeme . try) (some (alphaNumChar <|> punctuationChar) >>= check)
   where check x = if x `elem` allKeywords
                     then fail $ "keyword " ++ show x ++ " cannot be a symbol"
-                    else return $ f x
+                    else return x
 
-syntaxElementList :: (String -> a) -> Parser [a]
-syntaxElementList = many . syntaxElement
+syntaxElementList :: Parser [Symbol]
+syntaxElementList = many syntaxElement
 
 keyword :: String -> Parser ()
 keyword w = lexeme (string w *> notFollowedBy (alphaNumChar <|> punctuationChar))
@@ -37,11 +37,11 @@ statementTerminator = keyword $ show STATEMENT_TERMINATOR
 declaration kwd@CONSTANTS =
     between (keyword $ show kwd)
             statementTerminator
-            (syntaxElementList Const)
+            syntaxElementList
 declaration kwd@VARIABLES =
     between (keyword $ show kwd)
             statementTerminator
-            (syntaxElementList Var)
+            syntaxElementList
 declaration kwd = fail $ "keyword " ++ show kwd ++ " cannot be declared"
 
 constants :: Parser Statement
@@ -50,7 +50,7 @@ constants = Constants <$> declaration CONSTANTS
 variables :: Parser Statement
 variables = Variables <$> declaration VARIABLES
 
-statementLabel = syntaxElement id
+statementLabel = syntaxElement
 
 statementLabelList = many statementLabel
 
@@ -58,13 +58,13 @@ axiomaticAssertion = do
   assertionLabel <- statementLabel
   symbols <- between (keyword $ show AXIOMATIC_ASSERTION)
                      statementTerminator
-                     (syntaxElementList Const) -- TODO: Consider variables
+                     syntaxElementList
   return $ Axiom assertionLabel symbols
 
 provableAssertion = do
   assertionLabel <- statementLabel
   keyword $ show PROVABLE_ASSERTION
-  theorem <- syntaxElementList Const -- TODO: Consider variables
+  theorem <- syntaxElementList
   keyword $ show PROOF
   proof <- statementLabelList
   statementTerminator

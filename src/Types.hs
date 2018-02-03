@@ -4,10 +4,7 @@ module Types where
 type Label = String
 
 -- math symbols declared as constants or variables
-data Symbol =
-    Const String
-  | Var String
-  deriving (Eq, Show)
+type Symbol = String
 
 -- ${, $}, $c, $v, $f, $e, $d, $a, or $p statement
 data Statement =
@@ -60,3 +57,4 @@ allKeywords =
            , BEGIN
            , END
            ]
+
